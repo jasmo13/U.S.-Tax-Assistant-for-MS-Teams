@@ -20,7 +20,10 @@ node_modules/
 .env
 .deployment
 .DS_Store
+# Ignore .github directory
 .github/
+# But allow dependabot configuration
+!.github/dependabot.yml
 
 # Dev tool directories
 /devTools/
