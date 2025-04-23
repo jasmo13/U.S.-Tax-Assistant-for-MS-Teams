@@ -1,0 +1,40 @@
+{
+    "name": "ustaxassistant",
+    "version": "1.0.2",
+    "msteams": {
+        "teamsAppId": null
+    },
+    "description": "Your friendly neighborhood tax assistant.",
+    "engines": {
+        "node": "18 || 20"
+    },
+    "author": "Microsoft",
+    "license": "MIT",
+    "main": "index.js",
+    "scripts": {
+        "dev:teamsfx": "env-cmd --silent -f .localConfigs npm run dev",
+        "dev:teamsfx:testtool": "env-cmd --silent -f .localConfigs.testTool npm run dev",
+        "dev:teamsfx:launch-testtool": "env-cmd --silent -f env/.env.testtool teamsapptester start",
+        "dev": "nodemon --inspect=9239 --signal SIGINT ./index.js",
+        "start": "node ./index.js",
+        "watch": "nodemon ./index.js",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "post-deploy": "node ./postDeploy.js"
+    },
+    "dependencies": {
+        "@azure/identity": "^4.9.0",
+        "@azure/storage-blob": "^12.17.0",
+        "@instructor-ai/instructor": "^1.7.0",
+        "axios": "^1.6.7",
+        "botbuilder": "^4.23.1",
+        "dotenv": "^16.4.7",
+        "express": "^5.0.1",
+        "openai": "^4.89.0",
+        "tiktoken": "^1.0.20",
+        "zod": "^3.24.2"
+    },
+    "devDependencies": {
+        "env-cmd": "^10.1.0",
+        "nodemon": "^3.1.7"
+    }
+}

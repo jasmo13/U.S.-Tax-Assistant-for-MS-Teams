@@ -1,0 +1,52 @@
+{
+    "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
+    "manifestVersion": "1.19",
+    "version": "1.0.2",
+    "id": "${{TEAMS_APP_ID}}",
+    "developer": {
+        "name": "Jake Campbell",
+        "websiteUrl": "https://www.example.com",
+        "privacyUrl": "https://www.example.com/privacy",
+        "termsOfUseUrl": "https://www.example.com/termofuse"
+    },
+    "icons": {
+        "color": "color.png",
+        "outline": "outline.png"
+    },
+    "name": {
+        "short": "U.S. Tax Assistant",
+        "full": "U.S. Tax Assistant"
+    },
+    "description": {
+        "short": "Your friendly neighborhood tax assistant.",
+        "full": "U.S. Tax Assistant provides guidance on federal tax regulations and their practical application, helping users navigate the complex U.S. tax system. The bot assists with selecting appropriate tax forms, offers personalized advice on deductions, credits, and filing status options, and answers common tax questions with clear explanations. When complex issues arise, it directs users to additional resources and expertise. Designed to serve individual taxpayers, small business owners, and tax professionals alike, U.S. Tax Assistant functions as a convenient quick reference for tax codes and regulations, making tax compliance more accessible and understandable."
+    },
+    "accentColor": "#27b2d8",
+    "bots": [
+        {
+            "botId": "${{BOT_ID}}",
+            "scopes": ["personal"],
+            "supportsFiles": false,
+            "isNotificationOnly": false,
+            "commandLists": [
+                {
+                  "scopes": ["personal"],
+                  "commands": [
+                      {
+                          "title": "/restart",
+                          "description": "Start a new conversation."
+                      }
+                  ]
+                }
+            ]
+        }
+    ],
+    "composeExtensions": [],
+    "configurableTabs": [],
+    "staticTabs": [],
+    "permissions": [
+        "identity",
+        "messageTeamMembers"
+    ],
+    "validDomains": []
+}
