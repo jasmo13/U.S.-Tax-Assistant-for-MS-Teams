@@ -26,3 +26,4 @@ teamsapp.*.yml
 /appPackage/
 /infra/
 /devTools/
+/history/
