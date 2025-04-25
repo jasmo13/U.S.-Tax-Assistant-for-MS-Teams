@@ -1,12 +1,12 @@
 # TeamsFx files
-# Ignore all files in env directory
+# Ignore all files in env directory except for the sample files
 env/*
-# But allow sample files in env directory
 !env/*.sample
-# Ignore the real Azure parameters file
+
+# Ignore the Azure parameters file but allow the sample Azure parameters file
 infra/azure.parameters.json
-# But allow the sample Azure parameters file
 !infra/azure.parameters.json.sample
+
 .localConfigs.testTool
 .localConfigs
 .notification.localstore.json
@@ -20,9 +20,9 @@ node_modules/
 .env
 .deployment
 .DS_Store
-# Ignore .github directory
+
+# Ignore .github directory but allow the dependabot configuration
 .github/
-# But allow dependabot configuration
 !.github/dependabot.yml
 
 # Dev tool directories

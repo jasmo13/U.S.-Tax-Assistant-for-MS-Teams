@@ -71,7 +71,6 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
     principalId: identity.properties.principalId
     principalType: 'ServicePrincipal'
   }
-  // Removed unnecessary dependsOn - Bicep automatically infers dependencies from references
 }
 
 // Create blob service for storage account

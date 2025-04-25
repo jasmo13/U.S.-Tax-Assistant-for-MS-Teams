@@ -20,7 +20,7 @@ class StorageService {
     this.path = path;
     
     // Set up the local storage path based on environment
-    // On Azure App Service, we need to use a writable directory
+    // On Azure App Service, a writable directory is required
     const isRunningOnAzure = process.env.RUNNING_ON_AZURE === '1';
     if (isRunningOnAzure) {
       // Use D:\home\LogFiles which is guaranteed to be writable on Azure App Service
@@ -95,7 +95,7 @@ class StorageService {
         
         console.log(`Attempting to connect to Azure Storage account: ${accountName} using Managed Identity`);
         
-        // If we have a specific client ID for the User-Assigned Managed Identity, use it
+        // If there is a specific client ID for the User-Assigned Managed Identity stored, use it
         if (process.env.BOT_ID) {
           console.log(`Using User-Assigned Managed Identity with client ID: ${process.env.BOT_ID}`);
           const credential = new ManagedIdentityCredential(process.env.BOT_ID);

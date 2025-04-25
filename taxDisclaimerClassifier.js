@@ -1,5 +1,4 @@
 const { z } = require("zod");
-// Import instructor correctly according to npm documentation
 const { default: Instructor } = require("@instructor-ai/instructor");
 
 // Define the classification label enum

@@ -54,13 +54,12 @@ async function getPowerShellTokenWithDeviceAuth(tenantId = null) {
     // PowerShell script content that ensures device code is clearly displayed
     // and handles the breaking change in Get-AzAccessToken
     let psScriptContent = `
-# Force PowerShell to display the device code clearly
 Write-Host "===================================================="
 Write-Host "             AZURE DEVICE AUTHENTICATION" -ForegroundColor Cyan
 Write-Host "===================================================="
 Write-Host ""
 
-# Capture the Connect-AzAccount output to ensure we can format it properly
+# Capture the Connect-AzAccount output to ensure it is formatted properly
 try {
     # This launches the interactive authentication and shows the device code
 `;
@@ -80,15 +79,14 @@ try {
     Write-Host "Tenant: $($result.Context.Tenant.Id)" -ForegroundColor Green
     
     # Handle the upcoming breaking change in Get-AzAccessToken
-    # Check if we're using a version of Az that supports -AsSecureString
+    # Check if a version of Az that supports -AsSecureString is being used
     try {
         # First try with -AsSecureString parameter (future version)
         Write-Host "Trying to get token with -AsSecureString parameter..." -ForegroundColor Gray
         $secureToken = Get-AzAccessToken -ResourceUrl "https://management.azure.com/" -AsSecureString -ErrorAction Stop
         
         # Convert SecureString to plain text for use in script
-        # Note: This is necessary for now as we need the plain token for API calls
-        # In a production environment, a more secure approach would be preferred
+        # Note: This is necessary for now because the plain token for API calls is needed
         $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureToken.Token)
         $plainToken = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
         [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
@@ -147,7 +145,7 @@ catch {
       });
       
       ps.on('close', (code) => {
-        // Clean up the temporary file
+        // Remove the temporary file
         try {
           fs.unlinkSync(tempScriptPath);
         } catch (err) {
@@ -177,7 +175,7 @@ catch {
       });
       
       ps.on('error', (err) => {
-        // Clean up the temporary file
+        // Remove the temporary file
         try {
           fs.unlinkSync(tempScriptPath);
         } catch (unlinkErr) {
@@ -244,8 +242,8 @@ async function updateBotIcon(botId, iconPath, token) {
     const base64Icon = iconContent.toString('base64');
     console.log(`Icon loaded successfully (${iconContent.length} bytes)`);
     
-    // For Teams bots, we need to update the bot properties instead of using the updateIcon endpoint
-    // 1. First get the current bot properties
+    // For Teams bots, you need to update the bot properties instead of using the updateIcon endpoint
+    // First, get the current bot properties
     const apiVersion = '2022-09-15';
     const getBotUrl = `https://management.azure.com${botId}?api-version=${apiVersion}`;
     
@@ -296,7 +294,7 @@ async function updateBotIcon(botId, iconPath, token) {
     
     const botProperties = getBotResponse.data;
     
-    // 2. Update the bot properties with the new icon
+    // Second, update the bot properties with the new icon
     const updateUrl = `https://management.azure.com${botId}?api-version=${apiVersion}`;
     
     // Add icon to properties
@@ -338,7 +336,7 @@ async function main() {
       }
     }
 
-    // Check if we have the bot service resource ID
+    // Check if the bot service resource ID has been retrieved
     const botServiceResourceId = process.env.BOT_AZURE_APP_SERVICE_RESOURCE_ID;
     if (!botServiceResourceId) {
       console.log('Bot service resource ID not found in environment variables.');
@@ -412,7 +410,7 @@ async function main() {
           }
         }
         
-        // Use our reliable device authentication method
+        // Use the reliable device authentication method
         const token = await getPowerShellTokenWithDeviceAuth();
         
         // Upload the icon

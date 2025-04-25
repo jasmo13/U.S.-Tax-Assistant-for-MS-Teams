@@ -8,7 +8,7 @@ const path = require('path');
 
 // Load environment variables with fallbacks for Azure
 try {
-  // Check if we're on Azure (where env vars are set directly)
+  // Check if the program is running on Azure (where env vars are set directly)
   if (process.env.RUNNING_ON_AZURE !== '1') {
     // Try to load from .env.dev.user file (for local development)
     const envPath = path.join(__dirname, 'env', '.env.dev.user');
@@ -39,7 +39,7 @@ class TeamsBot extends TeamsActivityHandler {
     this.conversationState = conversationState;
     this.conversationHistoryAccessor = this.conversationState.createProperty('conversationHistory');
     
-    // Initialize tiktoken encoder for GPT-4o
+    // Initialize tiktoken encoder for GPT-4o (gpt-4.1 uses the same encoding)
     this.encoder = encoding_for_model("gpt-4o");
     
     // Initialize OpenAI client
@@ -246,12 +246,11 @@ class TeamsBot extends TeamsActivityHandler {
           "content": [{ "type": "output_text", "text": botResponseText }]
         });
 
-        // NOW trim the history if needed (after adding both messages)
+        // Trim the history if needed (after adding both messages)
         if (conversationHistory.length > 0) {
-          // Make sure you're passing the actual systemTokens (407) not MAX_TOKENS here
           conversationHistory = this.trimConversationToTokenLimit(
             conversationHistory, 
-            systemTokens, // This should be ~407, not 900000
+            systemTokens,
             0 // userTokens is 0 since the current message is already in history
           );
         }
@@ -398,7 +397,7 @@ class TeamsBot extends TeamsActivityHandler {
 
     console.log(`After removal: ${trimmedHistory.length} messages remaining with ${finalHistoryTokens} history tokens. Total: ${finalTotalTokens} / ${MAX_TOKENS} (removed ${originalLength - trimmedHistory.length} messages total)`);
     
-    // Log if we still couldn't get under the limit
+    // Log if the program still couldn't get under the limit
     if (finalTotalTokens > MAX_TOKENS) {
       console.warn(`WARNING: Conversation still exceeds token limit after trimming. Current total: ${finalTotalTokens}, Limit: ${MAX_TOKENS}`);
     }

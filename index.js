@@ -36,7 +36,7 @@ adapter.onTurnError = async (context, error) => {
   // This check writes out errors to console log .vs. app insights.
   console.error(`\n [onTurnError] unhandled error: ${error}`);
   
-  // Add detailed error logging to help diagnose deployed bot issues
+  // Detailed error logging to help diagnose deployed bot issues
   console.error('Error details:', error.stack);
   console.error('Bot configuration:', {
     nodeEnv: process.env.NODE_ENV,
@@ -85,7 +85,7 @@ const server = expressApp.listen(process.env.port || process.env.PORT || 3978, (
   });
 });
 
-// Listen for incoming requests.
+// Listen for incoming requests
 expressApp.post("/api/messages", async (req, res) => {
   console.log('Received message activity');
   try {
@@ -99,7 +99,7 @@ expressApp.post("/api/messages", async (req, res) => {
   }
 });
 
-// Add a simple health check endpoint
+// A simple health check endpoint
 expressApp.get("/health", (req, res) => {
   res.status(200).send("Bot is running");
 });
