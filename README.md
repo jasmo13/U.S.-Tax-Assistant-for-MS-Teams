@@ -142,7 +142,7 @@ U.S. Tax Assistant provides general tax information and guidance only. The infor
 
 ## Troubleshooting
 
-- Check the bot's logs in the Azure CLI (after authenticating your session) by entering the following command: `az webapp log tail --name yourappname1234 --resource-group your-resource-group-name`
+- Check the bot's logs in the Azure CLI (after authenticating your session) by entering the following command: `az webapp log tail --name YourAppName1234 --resource-group YourResourceGroupName`
 - Ensure the OpenAI API key is correctly set in the App Service configuration
 - Verify the bot has proper permissions to access Azure Blob Storage
 
