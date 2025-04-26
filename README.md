@@ -82,7 +82,7 @@ This repository contains sample environment files that show the required configu
 
 The U.S. Tax Assistant provides control over whether conversation logs are stored on OpenAI's servers:
 
-1. **OPENAI_STORE_CONVERSATION_LOGS**: Controls whether OpenAI stores conversation logs that are visible to your organization.
+**OPENAI_STORE_CONVERSATION_LOGS**: Controls whether OpenAI stores conversation logs that are visible to your organization.
    - Set to `true` (default) to enable conversation storage on OpenAI servers.
    - Set to `false` to disable conversation storage on OpenAI servers.
    - This setting affects data privacy and should be configured according to your organization's requirements.
