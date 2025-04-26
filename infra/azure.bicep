@@ -20,7 +20,7 @@ param openAiApiKey string
 param openAiVectorStoreId string
 
 @description('Controls whether OpenAI stores conversation logs (visible to your organization)')
-param openAiStoreConversationLogs string
+param openAiStoreConversationLogs bool
 
 @description('User location country for the bot to use (e.g., US, GB)')
 param botLocationCountry string
