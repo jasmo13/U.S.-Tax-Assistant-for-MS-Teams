@@ -41,7 +41,7 @@ The U.S. Tax Assistant is built using:
 ### Prerequisites
 
 - Microsoft 365 for Business account
-- Node.js (18.x or 20.x)
+- Node.js (20.x or 22.x)
 - Teams Toolkit for Visual Studio Code
 - Azure subscription (with valid resource group)
 - OpenAI API key
