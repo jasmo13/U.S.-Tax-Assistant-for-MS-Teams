@@ -53,7 +53,6 @@ This repository contains sample environment files that show the required configu
 
 1. Copy the sample environment files to create your configuration files:
    ```bash
-   # Copy environment sample files
    cp env/.env.dev.sample env/.env.dev
    cp env/.env.dev.user.sample env/.env.dev.user
    cp env/.env.local.sample env/.env.local
@@ -86,7 +85,7 @@ The U.S. Tax Assistant uses OpenAI's file search capability to retrieve and prov
    - This ID must be configured in all environment files as described in the table above
    - In production (Azure), this is set via the Azure App Service configuration
 
-2. **Creating a Vector Store**: If you need to create your own vector store:
+2. **Creating a Vector Store**:
    - Download the PDF version of Title 26 (Internal Revenue Code) from the official U.S. House of Representatives website: https://uscode.house.gov/download/download.shtml
    - Extract the zip file containing the PDF document
    - Split the PDF into 100-page segments for easier upload using software such as Adobe Acrobat
