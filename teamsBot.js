@@ -160,14 +160,14 @@ class TeamsBot extends TeamsActivityHandler {
           ]
         });
         
-        // Log token counts
-        const totalTokens = this.countTokensInMessages(messages);
-        console.log(`Request using ${totalTokens} tokens (system: ${systemTokens}, history: ${this.countTokensInHistory(conversationHistory)}, user: ${userMessageTokens})`);
-        
         // Determine if conversation logs should be stored on OpenAI
         // Default to true if the environment variable is not set
         const storeConversationLogs = process.env.OPENAI_STORE_CONVERSATION_LOGS !== 'false';
         console.log(`OpenAI conversation logging: ${storeConversationLogs ? 'enabled' : 'disabled'}`);
+
+        // Log token counts
+        const totalTokens = this.countTokensInMessages(messages);
+        console.log(`Request using ${totalTokens} tokens (system: ${systemTokens}, history: ${this.countTokensInHistory(conversationHistory)}, user: ${userMessageTokens})`);
         
         // Call OpenAI API with history and current message
         const response = await this.openai.responses.create({
