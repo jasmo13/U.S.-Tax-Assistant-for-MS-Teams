@@ -11,6 +11,7 @@ infra/azure.parameters.json
 .localConfigs
 .notification.localstore.json
 .notification.testtoolstore.json
+.package-lock.json
 appPackage/build
 
 # dependencies
