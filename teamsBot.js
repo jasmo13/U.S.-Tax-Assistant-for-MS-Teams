@@ -167,7 +167,7 @@ class TeamsBot extends TeamsActivityHandler {
         // Determine if conversation logs should be stored on OpenAI
         // Default to true if the environment variable is not set
         const storeConversationLogs = process.env.OPENAI_STORE_CONVERSATION_LOGS !== 'false';
-        console.log(`OpenAI conversation storage setting: ${storeConversationLogs ? 'enabled' : 'disabled'}`);
+        console.log(`OpenAI conversation logging enabled: ${storeConversationLogs ? 'enabled' : 'disabled'}`);
         
         // Call OpenAI API with history and current message
         const response = await this.openai.responses.create({
