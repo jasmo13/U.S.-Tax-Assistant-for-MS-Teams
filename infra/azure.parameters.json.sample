@@ -20,6 +20,9 @@
     "openAiVectorStoreId": {
       "value": "your-openai-vector-store-id"
     },
+    "openAiStoreConversationLogs": {
+      "value": true
+    },
     "botLocationCountry": {
       "value": "YourCountry"
     },

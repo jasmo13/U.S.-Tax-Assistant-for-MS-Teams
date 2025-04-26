@@ -17,6 +17,7 @@ U.S. Tax Assistant is a Microsoft Teams bot that helps users navigate the comple
 - **Automatic Disclaimers**: AI-powered classification system adds appropriate disclaimers to tax advice
 - **Retrieval-Augmented Generation**: Uses OpenAI's file search capability with a custom vector store to provide accurate U.S. Tax Code information
 - **Internet Access**: Ability to search the web for the latest tax information, IRS publications, and state-specific tax guidance when needed
+- **Privacy Controls**: Configurable OpenAI conversation storage options to control whether conversation logs are stored on OpenAI's servers
 
 ## Target Audience
 
@@ -74,8 +75,18 @@ This repository contains sample environment files that show the required configu
 | File | Key Configuration Values |
 |------|--------------------------|
 | .env.dev | AZURE_SUBSCRIPTION_ID, AZURE_RESOURCE_GROUP_NAME, RESOURCE_SUFFIX |
-| .env.dev.user | OPENAI_API_KEY, OPENAI_VECTOR_STORE_ID, BOT_LOCATION_COUNTRY, BOT_LOCATION_REGION, BOT_LOCATION_CITY, BOT_TIMEZONE |
-| azure.parameters.json | openAiApiKey, openAiVectorStoreId, botLocationCountry, botLocationRegion, botLocationCity, botTimezone |
+| .env.dev.user | OPENAI_API_KEY, OPENAI_VECTOR_STORE_ID, OPENAI_STORE_CONVERSATION_LOGS, BOT_LOCATION_COUNTRY, BOT_LOCATION_REGION, BOT_LOCATION_CITY, BOT_TIMEZONE |
+| azure.parameters.json | openAiApiKey, openAiVectorStoreId, openAiStoreConversationLogs, botLocationCountry, botLocationRegion, botLocationCity, botTimezone |
+
+### OpenAI Conversation Storage Configuration
+
+The U.S. Tax Assistant provides control over whether conversation logs are stored on OpenAI's servers:
+
+1. **OPENAI_STORE_CONVERSATION_LOGS**: Controls whether OpenAI stores conversation logs that are visible to your organization.
+   - Set to `true` (default) to enable conversation storage on OpenAI servers.
+   - Set to `false` to disable conversation storage on OpenAI servers.
+   - This setting affects data privacy and should be configured according to your organization's requirements.
+   - Note that disabling this does not affect the bot's own conversation history storage in Azure Blob Storage.
 
 ### OpenAI Vector Store Configuration
 

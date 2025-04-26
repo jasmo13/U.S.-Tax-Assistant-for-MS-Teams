@@ -164,6 +164,11 @@ class TeamsBot extends TeamsActivityHandler {
         const totalTokens = this.countTokensInMessages(messages);
         console.log(`Request using ${totalTokens} tokens (system: ${systemTokens}, history: ${this.countTokensInHistory(conversationHistory)}, user: ${userMessageTokens})`);
         
+        // Determine if conversation logs should be stored on OpenAI
+        // Default to true if the environment variable is not set
+        const storeConversationLogs = process.env.OPENAI_STORE_CONVERSATION_LOGS !== 'false';
+        console.log(`OpenAI conversation storage setting: ${storeConversationLogs ? 'enabled' : 'disabled'}`);
+        
         // Call OpenAI API with history and current message
         const response = await this.openai.responses.create({
           model: "gpt-4.1",
@@ -195,7 +200,7 @@ class TeamsBot extends TeamsActivityHandler {
           temperature: 1,
           max_output_tokens: 16384,
           top_p: 1,
-          store: true
+          store: storeConversationLogs
         });
         
         let botResponseText = "";

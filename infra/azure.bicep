@@ -19,6 +19,9 @@ param openAiApiKey string
 @secure()
 param openAiVectorStoreId string
 
+@description('Controls whether OpenAI stores conversation logs (visible to your organization)')
+param openAiStoreConversationLogs string
+
 @description('User location country for the bot to use (e.g., US, GB)')
 param botLocationCountry string
 
@@ -140,6 +143,10 @@ resource webApp 'Microsoft.Web/sites@2021-02-01' = {
         {
           name: 'OPENAI_VECTOR_STORE_ID'
           value: openAiVectorStoreId
+        }
+        {
+          name: 'OPENAI_STORE_CONVERSATION_LOGS'
+          value: openAiStoreConversationLogs
         }
         {
           name: 'BOT_LOCATION_COUNTRY'
