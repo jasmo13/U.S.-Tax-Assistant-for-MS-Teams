@@ -146,7 +146,7 @@ resource webApp 'Microsoft.Web/sites@2021-02-01' = {
         }
                 {
           name: 'OPENAI_STORE_CONVERSATION_LOGS'
-          value: '${openAiStoreConversationLogs}'
+          value: openAiStoreConversationLogs ? 'true' : 'false'
         }
         {
           name: 'BOT_LOCATION_COUNTRY'
