@@ -14,10 +14,10 @@ U.S. Tax Assistant is a Microsoft Teams bot that helps users navigate the comple
 - **Common Question Answers**: Detailed responses to frequently asked tax questions
 - **Resource Recommendations**: Guidance to additional resources for complex tax issues
 - **Persistent Conversations**: Conversation history is preserved between sessions
+- **Privacy Controls**: Configurable OpenAI conversation logging options to control whether conversation logs are stored on OpenAI's servers
 - **Automatic Disclaimers**: AI-powered classification system adds appropriate disclaimers to tax advice
 - **Retrieval-Augmented Generation**: Uses OpenAI's file search capability with a custom vector store to provide accurate U.S. Tax Code information
 - **Internet Access**: Ability to search the web for the latest tax information, IRS publications, and state-specific tax guidance when needed
-- **Privacy Controls**: Configurable OpenAI conversation storage options to control whether conversation logs are stored on OpenAI's servers
 
 ## Target Audience
 
@@ -78,13 +78,13 @@ This repository contains sample environment files that show the required configu
 | .env.dev.user | OPENAI_API_KEY, OPENAI_VECTOR_STORE_ID, OPENAI_STORE_CONVERSATION_LOGS, BOT_LOCATION_COUNTRY, BOT_LOCATION_REGION, BOT_LOCATION_CITY, BOT_TIMEZONE |
 | azure.parameters.json | openAiApiKey, openAiVectorStoreId, openAiStoreConversationLogs, botLocationCountry, botLocationRegion, botLocationCity, botTimezone |
 
-### OpenAI Conversation Storage Configuration
+### OpenAI Conversation Logging Configuration
 
 The U.S. Tax Assistant provides control over whether conversation logs are stored on OpenAI's servers:
 
 **OPENAI_STORE_CONVERSATION_LOGS**: Controls whether OpenAI stores conversation logs that are visible to your organization.
-   - Set to `true` (default) to enable conversation storage on OpenAI servers.
-   - Set to `false` to disable conversation storage on OpenAI servers.
+   - Set to `true` (default) to enable conversation logging on OpenAI servers.
+   - Set to `false` to disable conversation logging on OpenAI servers.
    - This setting affects data privacy and should be configured according to your organization's requirements.
    - Note that disabling this does not affect the bot's own conversation history storage in Azure Blob Storage.
 
