@@ -54,7 +54,6 @@ This repository contains sample environment files that show the required configu
 
 1. Copy the sample environment files to create your configuration files:
    ```bash
-   # Copy environment sample files
    cp env/.env.dev.sample env/.env.dev
    cp env/.env.dev.user.sample env/.env.dev.user
    cp env/.env.local.sample env/.env.local
