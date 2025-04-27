@@ -6,7 +6,7 @@
     },
     "description": "Your friendly neighborhood tax assistant.",
     "engines": {
-        "node": "20 || 22"
+        "node": "22 || 23"
     },
     "author": "Microsoft",
     "license": "MIT",
