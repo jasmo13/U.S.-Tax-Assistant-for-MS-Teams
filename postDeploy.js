@@ -200,18 +200,20 @@ async function getMicrosoftGraphToken(tenantId = null) {
     const tempScriptPath = path.join(__dirname, 'temp-graph-auth.ps1');
     let psScriptContent = `
 Write-Host "===================================================="
-Write-Host "    MICROSOFT GRAPH API AUTHENTICATION" -ForegroundColor Cyan
+Write-Host "         MICROSOFT GRAPH API AUTHENTICATION" -ForegroundColor Cyan
 Write-Host "===================================================="
 Write-Host ""
+
+# Capture the Connect-AzAccount output to ensure it is formatted properly
 try {
-    # Authenticate to Azure if not already done
+    # This launches the interactive authentication and shows the device code
 `;
-    
+
     // Add tenant ID parameter if provided
     if (tenantId) {
-      psScriptContent += `    $result = Connect-AzAccount -UseDeviceAuthentication -TenantId '${tenantId}' -ErrorAction Stop`;
+      psScriptContent += `    $result = Connect-AzAccount -UseDeviceAuthentication -TenantId '${tenantId}'`;
     } else {
-      psScriptContent += `    $result = Connect-AzAccount -UseDeviceAuthentication -ErrorAction Stop`;
+      psScriptContent += `    $result = Connect-AzAccount -UseDeviceAuthentication`;
     }
 
     psScriptContent += `
@@ -221,17 +223,18 @@ try {
     Write-Host "User: $($result.Context.Account.Id)" -ForegroundColor Green
     Write-Host "Tenant: $($result.Context.Tenant.Id)" -ForegroundColor Green
     
-    # Get token for Microsoft Graph API using secure handling
+    # Handle the upcoming breaking change in Get-AzAccessToken
+    # Check if a version of Az that supports -AsSecureString is being used
     try {
         # First try with -AsSecureString parameter (future version)
+        Write-Host "Trying to get token with -AsSecureString parameter..." -ForegroundColor Gray
         $secureToken = Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com/" -AsSecureString -ErrorAction Stop
         
-        # Convert SecureString to plain text for use in script but don't display it
+        # Convert SecureString to plain text for use in script
+        # Note: This is necessary for now because the plain token for API calls is needed
         $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureToken.Token)
         $plainToken = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
         [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
-        
-        Write-Host "Successfully retrieved Microsoft Graph token (secured)" -ForegroundColor Green
         
         # Create an object with the plain token to return as JSON
         $tokenObj = @{
@@ -240,20 +243,16 @@ try {
             TenantId = $secureToken.TenantId
             UserId = $secureToken.UserId
             Type = $secureToken.Type
+            IsSecureString = $true
         }
         $tokenObj | ConvertTo-Json
     }
     catch {
         # If -AsSecureString fails, fallback to the current version behavior
-        # but mask the token in the output
         Write-Host "Falling back to standard Get-AzAccessToken..." -ForegroundColor Gray
         $token = Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com/" -ErrorAction Stop
-        
-        # Mask the token in the object before displaying
-        $maskedToken = $token.Clone()
-        Write-Host "Successfully retrieved Microsoft Graph token (masked)" -ForegroundColor Green
-        
-        # Return the actual token for use but don't display it
+        Write-Host ""
+        Write-Host "Successfully retrieved token!" -ForegroundColor Green
         $token | ConvertTo-Json
     }
 }
