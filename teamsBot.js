@@ -5,6 +5,7 @@ const { encoding_for_model } = require("tiktoken");
 const storageService = require("./storageService");
 const fs = require('fs');
 const path = require('path');
+const { DefaultAzureCredential } = require('@azure/identity');
 
 // Load environment variables with fallbacks for Azure
 try {
@@ -26,6 +27,21 @@ try {
 } catch (error) {
   console.error('Error loading environment variables:', error);
   // Continue execution - Azure should have env vars set in App Service Configuration
+}
+
+// Helper to get Microsoft Graph token
+async function getGraphToken() {
+  if (process.env.MICROSOFT_GRAPH_TOKEN) {
+    return process.env.MICROSOFT_GRAPH_TOKEN;
+  }
+  try {
+    const credential = new DefaultAzureCredential();
+    const tokenResponse = await credential.getToken('https://graph.microsoft.com/.default');
+    return tokenResponse.token;
+  } catch (err) {
+    console.error('Failed to acquire Microsoft Graph token:', err.message);
+    return null;
+  }
 }
 
 // Constants for conversation management
@@ -121,9 +137,9 @@ class TeamsBot extends TeamsActivityHandler {
           // For RSC, Teams will send a token in context.activity.serviceUrl or context.adapter.getUserToken
           // Here, we assume the bot is running with proper permissions and can use the app token
           // You may need to implement your own token acquisition logic if needed
-          const accessToken = process.env.MICROSOFT_GRAPH_TOKEN;
+          const accessToken = await getGraphToken();
           if (!accessToken) {
-            console.warn('MICROSOFT_GRAPH_TOKEN not set. Skipping RSC Teams chat history check.');
+            console.warn('Could not acquire Microsoft Graph token. Skipping RSC Teams chat history check.');
           } else {
             const graphClient = Client.init({
               authProvider: (done) => {
