@@ -122,8 +122,8 @@ class TeamsBot extends TeamsActivityHandler {
 
       // --- RSC/Graph check for actual Teams chat history ---
       // Only proceed if we have any bot-side history (in memory or blob)
-      // Skip RSC check in local dev to allow normal testing
-      const isLocalDev = process.env.TEAMSFX_ENV === 'user';
+      // Skip RSC check if using local storage (i.e., in local dev)
+      const isLocalDev = storageService.useLocalStorage;
       let botHasHistory = conversationHistory.length > 0;
       if (!isLocalDev) {
         try {
@@ -146,20 +146,24 @@ class TeamsBot extends TeamsActivityHandler {
                 }
               });
               // Fetch messages from Teams chat
-              let messages = [];
+              let messages = null;
+              let graphError = null;
               try {
                 const result = await graphClient.api(`/chats/${chatId}/messages`).version('v1.0').get();
                 messages = result.value || [];
               } catch (err) {
+                graphError = err;
                 console.error('Error fetching Teams chat history via Graph:', err.message);
               }
-              // If Teams chat history is empty but bot has history, clear bot's history
-              if (messages.length === 0) {
+              // Only clear history if the Graph call succeeded and returned an empty list
+              if (messages && Array.isArray(messages) && messages.length === 0) {
                 console.log(`[RSC] Teams chat history is empty for chatId ${chatId}, but bot has history. Clearing bot history to sync.`);
                 await this.conversationHistoryAccessor.set(context, []);
                 await this.conversationState.saveChanges(context);
                 await storageService.deleteConversationHistory(chatId);
                 conversationHistory = [];
+              } else if (graphError) {
+                console.warn('[RSC] Skipping bot history clear due to Graph API error.');
               }
             }
           }
