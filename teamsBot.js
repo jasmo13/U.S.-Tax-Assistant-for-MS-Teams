@@ -126,17 +126,13 @@ class TeamsBot extends TeamsActivityHandler {
       try {
         // Only check if we have any bot-side history
         if (botHasHistory) {
-          // Use Microsoft Graph to check Teams chat history
           const { Client } = require('@microsoft/microsoft-graph-client');
           require('isomorphic-fetch');
 
           // Get the chat ID from the activity
           const chatId = context.activity.conversation.id;
 
-          // Acquire access token from context (Teams Bot SSO) or environment
-          // For RSC, Teams will send a token in context.activity.serviceUrl or context.adapter.getUserToken
-          // Here, we assume the bot is running with proper permissions and can use the app token
-          // You may need to implement your own token acquisition logic if needed
+          // Acquire access token using helper
           const accessToken = await getGraphToken();
           if (!accessToken) {
             console.warn('Could not acquire Microsoft Graph token. Skipping RSC Teams chat history check.');
