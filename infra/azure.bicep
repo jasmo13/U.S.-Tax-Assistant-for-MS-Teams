@@ -22,6 +22,10 @@ param openAiVectorStoreId string
 @description('Controls whether OpenAI stores conversation logs (visible to your organization)')
 param openAiStoreConversationLogs bool
 
+@description('Microsoft Graph token for RSC chat history check (for local dev or testing only)')
+@secure()
+param microsoftGraphToken string
+
 @description('User location country for the bot to use (e.g., US, GB)')
 param botLocationCountry string
 
@@ -147,6 +151,10 @@ resource webApp 'Microsoft.Web/sites@2021-02-01' = {
                 {
           name: 'OPENAI_STORE_CONVERSATION_LOGS'
           value: openAiStoreConversationLogs ? 'true' : 'false'
+        }
+        {
+          name: 'MICROSOFT_GRAPH_TOKEN'
+          value: microsoftGraphToken
         }
         {
           name: 'BOT_LOCATION_COUNTRY'

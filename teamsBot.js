@@ -103,6 +103,54 @@ class TeamsBot extends TeamsActivityHandler {
           console.error("Error loading conversation history:", error);
         }
       }
+
+      // --- RSC/Graph check for actual Teams chat history ---
+      // Only proceed if we have any bot-side history (in memory or blob)
+      let botHasHistory = conversationHistory.length > 0;
+      try {
+        // Only check if we have any bot-side history
+        if (botHasHistory) {
+          // Use Microsoft Graph to check Teams chat history
+          const { Client } = require('@microsoft/microsoft-graph-client');
+          require('isomorphic-fetch');
+
+          // Get the chat ID from the activity
+          const chatId = context.activity.conversation.id;
+
+          // Acquire access token from context (Teams Bot SSO) or environment
+          // For RSC, Teams will send a token in context.activity.serviceUrl or context.adapter.getUserToken
+          // Here, we assume the bot is running with proper permissions and can use the app token
+          // You may need to implement your own token acquisition logic if needed
+          const accessToken = process.env.MICROSOFT_GRAPH_TOKEN;
+          if (!accessToken) {
+            console.warn('MICROSOFT_GRAPH_TOKEN not set. Skipping RSC Teams chat history check.');
+          } else {
+            const graphClient = Client.init({
+              authProvider: (done) => {
+                done(null, accessToken);
+              }
+            });
+            // Fetch messages from Teams chat
+            let messages = [];
+            try {
+              const result = await graphClient.api(`/chats/${chatId}/messages`).version('v1.0').get();
+              messages = result.value || [];
+            } catch (err) {
+              console.error('Error fetching Teams chat history via Graph:', err.message);
+            }
+            // If Teams chat history is empty but bot has history, clear bot's history
+            if (messages.length === 0) {
+              console.log(`[RSC] Teams chat history is empty for chatId ${chatId}, but bot has history. Clearing bot history to sync.`);
+              await this.conversationHistoryAccessor.set(context, []);
+              await this.conversationState.saveChanges(context);
+              await storageService.deleteConversationHistory(chatId);
+              conversationHistory = [];
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error during RSC Teams chat history check:', err.message);
+      }
       
       // Send typing indicator
       await context.sendActivity({ type: 'typing' });
