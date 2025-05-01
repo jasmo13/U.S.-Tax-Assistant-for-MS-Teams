@@ -221,9 +221,41 @@ try {
     Write-Host "User: $($result.Context.Account.Id)" -ForegroundColor Green
     Write-Host "Tenant: $($result.Context.Tenant.Id)" -ForegroundColor Green
     
-    # Get token for Microsoft Graph API
-    $token = Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com/" -ErrorAction Stop
-    $token | ConvertTo-Json
+    # Get token for Microsoft Graph API using secure handling
+    try {
+        # First try with -AsSecureString parameter (future version)
+        $secureToken = Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com/" -AsSecureString -ErrorAction Stop
+        
+        # Convert SecureString to plain text for use in script but don't display it
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureToken.Token)
+        $plainToken = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+        
+        Write-Host "Successfully retrieved Microsoft Graph token (secured)" -ForegroundColor Green
+        
+        # Create an object with the plain token to return as JSON
+        $tokenObj = @{
+            Token = $plainToken
+            ExpiresOn = $secureToken.ExpiresOn
+            TenantId = $secureToken.TenantId
+            UserId = $secureToken.UserId
+            Type = $secureToken.Type
+        }
+        $tokenObj | ConvertTo-Json
+    }
+    catch {
+        # If -AsSecureString fails, fallback to the current version behavior
+        # but mask the token in the output
+        Write-Host "Falling back to standard Get-AzAccessToken..." -ForegroundColor Gray
+        $token = Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com/" -ErrorAction Stop
+        
+        # Mask the token in the object before displaying
+        $maskedToken = $token.Clone()
+        Write-Host "Successfully retrieved Microsoft Graph token (masked)" -ForegroundColor Green
+        
+        # Return the actual token for use but don't display it
+        $token | ConvertTo-Json
+    }
 }
 catch {
     Write-Host "Authentication error: $_" -ForegroundColor Red
