@@ -15,6 +15,22 @@ const {
 const { TeamsBot } = require("./teamsBot");
 const config = require("./config");
 
+// Auto-delete local dev conversation history for personal chat at startup
+if (process.env.USE_LOCAL_STORAGE === 'true') {
+  const fs = require('fs');
+  const path = require('path');
+  const historyDir = path.join(__dirname, 'history');
+  const personalChatFile = path.join(historyDir, 'personal-chat-id.json');
+  if (fs.existsSync(personalChatFile)) {
+    try {
+      fs.unlinkSync(personalChatFile);
+      console.log('[DEV] Deleted local conversation history: personal-chat-id.json');
+    } catch (err) {
+      console.warn('[DEV] Could not delete personal-chat-id.json:', err.message);
+    }
+  }
+}
+
 // Create adapter.
 // See https://aka.ms/about-bot-adapter to learn more about adapters.
 const credentialsFactory = new ConfigurationServiceClientCredentialFactory(config);
