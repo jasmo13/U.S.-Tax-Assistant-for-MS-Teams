@@ -123,7 +123,7 @@ class TeamsBot extends TeamsActivityHandler {
       // --- RSC/Graph check for actual Teams chat history ---
       // Only proceed if we have any bot-side history (in memory or blob)
       // Skip RSC check in local dev to allow normal testing
-      const isLocalDev = process.env.TEAMSFX_ENV === 'testtool' || process.env.TEAMSFX_ENV === 'local';
+      const isLocalDev = process.env.TEAMSFX_ENV === 'user';
       let botHasHistory = conversationHistory.length > 0;
       if (!isLocalDev) {
         try {
