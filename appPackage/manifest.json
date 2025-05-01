@@ -48,5 +48,19 @@
         "identity",
         "messageTeamMembers"
     ],
-    "validDomains": []
+    "validDomains": [],
+    "webApplicationInfo": {
+        "id": "${{BOT_ID}}",
+        "resource": "https://api.botframework.com"
+    },
+    "authorization": {
+        "permissions": {
+            "resourceSpecific": [
+                {
+                    "type": "Application",
+                    "name": "ChatMessage.Read.Chat"
+                }
+            ]
+        }
+    }
 }
