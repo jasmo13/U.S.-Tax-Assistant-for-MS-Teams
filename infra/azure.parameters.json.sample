@@ -23,9 +23,6 @@
     "openAiStoreConversationLogs": {
       "value": true
     },
-    "microsoftGraphToken": {
-      "value": "your-graph-token-here"
-    },
     "botLocationCountry": {
       "value": "YourCountry"
     },
