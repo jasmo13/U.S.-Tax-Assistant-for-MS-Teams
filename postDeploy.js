@@ -362,7 +362,7 @@ async function configureGraphPermissionsForBot(subscriptionId, resourceGroup, we
         // Check if the permission for Chat.Read is already set up
         console.log("\nChecking for existing Microsoft Graph permissions...");
         const hasPermission = sp.appRoles && sp.appRoles.some(role => 
-          role.value === 'Chat.Read' || role.value === 'ChatMessage.Read' || role.value === 'Chat.ReadWrite'
+          role.value === 'ChatMessage.Read.Chat'
         );
         
         if (hasPermission) {
@@ -388,13 +388,11 @@ async function configureGraphPermissionsForBot(subscriptionId, resourceGroup, we
         const graphSP = graphSPs[0];
         console.log(`Found Microsoft Graph service principal: ${graphSP.id}`);
         
-        // Find the Chat.Read or ChatMessage.Read permission
-        const chatReadRole = graphSP.appRoles.find(role => 
-          role.value === 'Chat.Read' || role.value === 'ChatMessage.Read'
-        );
+        // Find the specific ChatMessage.Read.Chat permission
+        const chatReadRole = graphSP.appRoles.find(role => role.value === 'ChatMessage.Read.Chat');
         
         if (!chatReadRole) {
-          throw new Error("Could not find Chat.Read or ChatMessage.Read role in Microsoft Graph");
+          throw new Error("Could not find ChatMessage.Read.Chat role in Microsoft Graph");
         }
         
         console.log(`Found ${chatReadRole.value} role: ${chatReadRole.id}`);
@@ -405,7 +403,7 @@ async function configureGraphPermissionsForBot(subscriptionId, resourceGroup, we
         const appRoleAssignment = {
           principalId: sp.id, // The service principal ID of the managed identity
           resourceId: graphSP.id, // Microsoft Graph service principal ID
-          appRoleId: chatReadRole.id // The Chat.Read role ID
+          appRoleId: chatReadRole.id // The ChatMessage.Read.Chat role ID
         };
         
         console.log("\nAssigning Microsoft Graph permission to the bot's managed identity...");

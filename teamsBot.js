@@ -357,6 +357,57 @@ class TeamsBot extends TeamsActivityHandler {
 
     // Listen to MembersAdded event
     this.onMembersAdded(async (context, next) => {
+      // --- RSC/Graph check for actual Teams chat history ---
+      // Only proceed if we have any bot-side history (in memory or blob)
+      // Skip RSC check if using local storage (i.e., in local dev)
+      const isLocalDev = storageService.useLocalStorage;
+      let botHasHistory = conversationHistory.length > 0;
+      if (!isLocalDev) {
+        try {
+          // Only check if we have any bot-side history
+          if (botHasHistory) {
+            const { Client } = require('@microsoft/microsoft-graph-client');
+            require('isomorphic-fetch');
+
+            // Get the chat ID from the activity
+            const chatId = context.activity.conversation.id;
+
+            // Acquire access token using helper
+            const accessToken = await getGraphToken();
+            if (!accessToken) {
+              console.warn('Could not acquire Microsoft Graph token. Skipping RSC Teams chat history check.');
+            } else {
+              const graphClient = Client.init({
+                authProvider: (done) => {
+                  done(null, accessToken);
+                }
+              });
+              // Fetch messages from Teams chat
+              let messages = null;
+              let graphError = null;
+              try {
+                const result = await graphClient.api(`/chats/${chatId}/messages`).version('v1.0').get();
+                messages = result.value || [];
+              } catch (err) {
+                graphError = err;
+                console.error('Error fetching Teams chat history via Graph:', err.message);
+              }
+              // Only clear history if the Graph call succeeded and returned an empty list
+              if (messages && Array.isArray(messages) && messages.length === 0) {
+                console.log(`[RSC] Teams chat history is empty for chatId ${chatId}, but bot has history. Clearing bot history to sync.`);
+                await this.conversationHistoryAccessor.set(context, []);
+                await this.conversationState.saveChanges(context);
+                await storageService.deleteConversationHistory(chatId);
+                conversationHistory = [];
+              } else if (graphError) {
+                console.warn('[RSC] Skipping bot history clear due to Graph API error.');
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error during RSC Teams chat history check:', err.message);
+        }
+      }
       const membersAdded = context.activity.membersAdded;
       for (let cnt = 0; cnt < membersAdded.length; cnt++) {
         if (membersAdded[cnt].id) {
