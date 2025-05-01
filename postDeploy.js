@@ -359,16 +359,18 @@ async function configureGraphPermissionsForBot(subscriptionId, resourceGroup, we
         const sp = servicePrincipals[0];
         console.log(`Found service principal: ${sp.id} (${sp.displayName})`);
         
-        // Check if the permission for Chat.Read is already set up
+        // Get all existing app role assignments for this service principal
         console.log("\nChecking for existing Microsoft Graph permissions...");
-        const hasPermission = sp.appRoles && sp.appRoles.some(role => 
-          role.value === 'ChatMessage.Read.Chat'
-        );
+        const appRoleAssignmentsUrl = `https://graph.microsoft.com/${graphApiVersion}/servicePrincipals/${sp.id}/appRoleAssignments`;
         
-        if (hasPermission) {
-          console.log("Microsoft Graph permissions for Teams chat history are already configured.");
-          return true;
-        }
+        const assignmentsResponse = await axios.get(appRoleAssignmentsUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const appRoleAssignments = assignmentsResponse.data.value;
         
         // Get Microsoft Graph service principal
         console.log("\nGetting Microsoft Graph service principal...");
@@ -388,33 +390,65 @@ async function configureGraphPermissionsForBot(subscriptionId, resourceGroup, we
         const graphSP = graphSPs[0];
         console.log(`Found Microsoft Graph service principal: ${graphSP.id}`);
         
-        // Find the specific ChatMessage.Read.Chat permission
-        const chatReadRole = graphSP.appRoles.find(role => role.value === 'ChatMessage.Read.Chat');
+        // Find the required permission roles
+        const requiredPermissions = [
+          'ChatMessage.Read.Chat',
+          'Chat.Read.All'
+        ];
         
-        if (!chatReadRole) {
-          throw new Error("Could not find ChatMessage.Read.Chat role in Microsoft Graph");
+        const permissionsToAdd = [];
+        
+        for (const permissionName of requiredPermissions) {
+          // Find the role in Microsoft Graph
+          const role = graphSP.appRoles.find(role => role.value === permissionName);
+          
+          if (!role) {
+            console.warn(`Could not find ${permissionName} role in Microsoft Graph. Skipping.`);
+            continue;
+          }
+          
+          // Check if this permission is already assigned
+          const hasPermission = appRoleAssignments.some(assignment => 
+            assignment.appRoleId === role.id && 
+            assignment.resourceId === graphSP.id
+          );
+          
+          if (hasPermission) {
+            console.log(`Permission ${permissionName} is already assigned to the bot.`);
+          } else {
+            console.log(`Permission ${permissionName} needs to be assigned.`);
+            permissionsToAdd.push(role);
+          }
         }
         
-        console.log(`Found ${chatReadRole.value} role: ${chatReadRole.id}`);
+        // Add any missing permissions
+        if (permissionsToAdd.length === 0) {
+          console.log("All required Microsoft Graph permissions are already configured.");
+          return true;
+        }
         
-        // Create app role assignment for the bot's managed identity
+        // Create app role assignments for the bot's managed identity
         const appRoleUrl = `https://graph.microsoft.com/${graphApiVersion}/servicePrincipals/${graphSP.id}/appRoleAssignments`;
         
-        const appRoleAssignment = {
-          principalId: sp.id, // The service principal ID of the managed identity
-          resourceId: graphSP.id, // Microsoft Graph service principal ID
-          appRoleId: chatReadRole.id // The ChatMessage.Read.Chat role ID
-        };
+        for (const role of permissionsToAdd) {
+          const appRoleAssignment = {
+            principalId: sp.id, // The service principal ID of the managed identity
+            resourceId: graphSP.id, // Microsoft Graph service principal ID
+            appRoleId: role.id // The role ID
+          };
+          
+          console.log(`\nAssigning ${role.value} permission to the bot's managed identity...`);
+          await axios.post(appRoleUrl, appRoleAssignment, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          console.log(`Successfully assigned ${role.value} permission to the bot`);
+        }
         
-        console.log("\nAssigning Microsoft Graph permission to the bot's managed identity...");
-        await axios.post(appRoleUrl, appRoleAssignment, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        console.log(`Successfully assigned ${chatReadRole.value} permission to the bot`);
+        console.log("\nAll required Microsoft Graph permissions have been successfully configured.");
         return true;
       } else {
         console.warn(`Could not find service principal for managed identity ${principalId}. It may not be fully provisioned yet.`);
