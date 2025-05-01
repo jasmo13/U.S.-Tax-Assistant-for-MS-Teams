@@ -31,15 +31,23 @@ try {
 
 // Helper to get Microsoft Graph token
 async function getGraphToken() {
-  if (process.env.MICROSOFT_GRAPH_TOKEN) {
-    return process.env.MICROSOFT_GRAPH_TOKEN;
-  }
   try {
+    // In Azure, this will use the app's system-assigned Managed Identity
     const credential = new DefaultAzureCredential();
+    console.log('Attempting to acquire Microsoft Graph token using DefaultAzureCredential...');
     const tokenResponse = await credential.getToken('https://graph.microsoft.com/.default');
+    console.log('Successfully acquired Microsoft Graph token using managed identity');
     return tokenResponse.token;
   } catch (err) {
     console.error('Failed to acquire Microsoft Graph token:', err.message);
+    if (err.stack) console.error('Stack trace:', err.stack.split('\n').slice(0, 3).join('\n') + '...');
+    
+    console.log('Checking if MICROSOFT_GRAPH_TOKEN environment variable is set...');
+    if (process.env.MICROSOFT_GRAPH_TOKEN) {
+      console.log('Using token from environment variable');
+      return process.env.MICROSOFT_GRAPH_TOKEN;
+    }
+    
     return null;
   }
 }

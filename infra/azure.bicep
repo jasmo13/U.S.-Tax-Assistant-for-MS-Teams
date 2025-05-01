@@ -177,7 +177,7 @@ resource webApp 'Microsoft.Web/sites@2021-02-01' = {
     }
   }
   identity: {
-    type: 'UserAssigned'
+    type: 'SystemAssigned, UserAssigned'
     userAssignedIdentities: {
       '${identity.id}': {}
     }
@@ -203,4 +203,5 @@ output BOT_AZURE_APP_SERVICE_RESOURCE_ID string = webApp.id
 output BOT_DOMAIN string = webApp.properties.defaultHostName
 output BOT_ID string = identity.properties.clientId
 output BOT_TENANT_ID string = identity.properties.tenantId
+output BOT_SYSTEM_MANAGED_IDENTITY_PRINCIPAL_ID string = webApp.identity.principalId
 output STORAGE_ACCOUNT_NAME string = storageAccount.name
