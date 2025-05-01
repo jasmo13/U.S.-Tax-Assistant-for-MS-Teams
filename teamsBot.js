@@ -127,10 +127,15 @@ class TeamsBot extends TeamsActivityHandler {
       let botHasHistory = conversationHistory.length > 0;
       if (!isLocalDev) {
         try {
+          // Only check if we have any bot-side history
           if (botHasHistory) {
             const { Client } = require('@microsoft/microsoft-graph-client');
             require('isomorphic-fetch');
+
+            // Get the chat ID from the activity
             const chatId = context.activity.conversation.id;
+
+            // Acquire access token using helper
             const accessToken = await getGraphToken();
             if (!accessToken) {
               console.warn('Could not acquire Microsoft Graph token. Skipping RSC Teams chat history check.');
@@ -140,6 +145,7 @@ class TeamsBot extends TeamsActivityHandler {
                   done(null, accessToken);
                 }
               });
+              // Fetch messages from Teams chat
               let messages = [];
               try {
                 const result = await graphClient.api(`/chats/${chatId}/messages`).version('v1.0').get();
@@ -147,6 +153,7 @@ class TeamsBot extends TeamsActivityHandler {
               } catch (err) {
                 console.error('Error fetching Teams chat history via Graph:', err.message);
               }
+              // If Teams chat history is empty but bot has history, clear bot's history
               if (messages.length === 0) {
                 console.log(`[RSC] Teams chat history is empty for chatId ${chatId}, but bot has history. Clearing bot history to sync.`);
                 await this.conversationHistoryAccessor.set(context, []);
