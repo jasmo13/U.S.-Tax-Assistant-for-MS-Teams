@@ -1,0 +1,5 @@
+{
+  "ignore": ["history/**", "*.json"],
+  "watch": ["."],
+  "ext": "js"
+}
