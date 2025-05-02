@@ -71,7 +71,9 @@ class TeamsBot extends TeamsActivityHandler {
         // Extract any text before or after the /restart command into a temporary variable
         const restartRegex = /\/restart/i;
         txt = txt.replace(restartRegex, '').trim();
-        console.log(`Text after removing restart command: "${txt}"`);
+        if (txt) {
+          console.log(`Text after removing restart command: "${txt}"`);
+        }
         
         // Clear conversation history
         await this.conversationHistoryAccessor.set(context, []);
