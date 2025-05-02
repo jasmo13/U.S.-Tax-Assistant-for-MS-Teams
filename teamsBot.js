@@ -59,13 +59,20 @@ class TeamsBot extends TeamsActivityHandler {
     this.onMessage(async (context, next) => {
       console.log("Running with Message Activity.");
       const removedMentionText = TurnContext.removeRecipientMention(context.activity);
-      const txt = removedMentionText.trim();
+      let txt = removedMentionText.trim();
       
       // Get conversation ID for storage
       const conversationId = context.activity.conversation.id;
       
-      // Check for reset command
-      if (txt.toLowerCase() === '/restart') {
+      // Check for restart command anywhere in the message
+      if (txt.toLowerCase().includes('/restart')) {
+        console.log("Restart command detected in message");
+        
+        // Extract any text before or after the /restart command into a temporary variable
+        const restartRegex = /\/restart/i;
+        txt = txt.replace(restartRegex, '').trim();
+        console.log(`Text after removing restart command: "${txt}"`);
+        
         // Clear conversation history
         await this.conversationHistoryAccessor.set(context, []);
         await this.conversationState.saveChanges(context);
@@ -73,14 +80,22 @@ class TeamsBot extends TeamsActivityHandler {
         // Clear persistent history in Azure Storage
         await storageService.deleteConversationHistory(conversationId);
         
-        await context.sendActivity(
-          "Conversation history has been reset! Let's start over!"
-        );
-        await context.sendActivity(this.standardDisclaimer);
-        await context.sendActivity(
-          "You can type '/restart' anytime to start fresh!"
-        );
-        return await next();
+        // If there's no additional text after removing the restart command
+        if (txt) {
+          await context.sendActivity(
+            "Conversation history has been reset! Responding to what you just said..."
+          );
+          console.log("Continuing with new conversation using remaining text");        
+        } else {
+          await context.sendActivity(
+            "Conversation history has been reset! Let's start over!"
+          );
+          await context.sendActivity(this.standardDisclaimer);
+          await context.sendActivity(
+            "You can type '/restart' anytime to start fresh!"
+          );
+          return await next();
+        }
       }
       
       // Get conversation history from state
@@ -103,7 +118,7 @@ class TeamsBot extends TeamsActivityHandler {
           console.error("Error loading conversation history:", error);
         }
       }
-      
+
       // Send typing indicator
       await context.sendActivity({ type: 'typing' });
       
