@@ -25,12 +25,12 @@
     "bots": [
         {
             "botId": "${{BOT_ID}}",
-            "scopes": ["personal"],
+            "scopes": ["personal", "team", "groupchat"],
             "supportsFiles": false,
             "isNotificationOnly": false,
             "commandLists": [
                 {
-                  "scopes": ["personal"],
+                  "scopes": ["personal", "team", "groupchat"],
                   "commands": [
                       {
                           "title": "/restart",
@@ -57,8 +57,16 @@
         "permissions": {
             "resourceSpecific": [
                 {
-                    "type": "Application",
-                    "name": "ChatMessage.Read.Chat"
+                    "name": "ChatMessage.Read.Chat",
+                    "type": "Application"
+                },
+                {
+                    "name": "ChatMessage.Read",
+                    "type": "Delegated"
+                },
+                {
+                    "name": "Chat.ReadWrite",
+                    "type": "Delegated"
                 }
             ]
         }
