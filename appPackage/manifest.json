@@ -25,12 +25,12 @@
     "bots": [
         {
             "botId": "${{BOT_ID}}",
-            "scopes": ["personal"],
+            "scopes": ["personal", "team", "groupchat"],
             "supportsFiles": false,
             "isNotificationOnly": false,
             "commandLists": [
                 {
-                  "scopes": ["personal"],
+                  "scopes": ["personal", "team", "groupchat"],
                   "commands": [
                       {
                           "title": "/restart",
@@ -48,5 +48,27 @@
         "identity",
         "messageTeamMembers"
     ],
-    "validDomains": []
+    "validDomains": [],
+    "webApplicationInfo": {
+        "id": "${{BOT_ID}}",
+        "resource": "https://api.botframework.com"
+    },
+    "authorization": {
+        "permissions": {
+            "resourceSpecific": [
+                {
+                    "name": "ChatMessage.Read.Chat",
+                    "type": "Application"
+                },
+                {
+                    "name": "ChatMessage.Read",
+                    "type": "Delegated"
+                },
+                {
+                    "name": "Chat.ReadWrite",
+                    "type": "Delegated"
+                }
+            ]
+        }
+    }
 }
