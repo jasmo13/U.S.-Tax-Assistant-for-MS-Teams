@@ -1,5 +1,5 @@
 // This script handles post-deployment tasks, including uploading a custom icon
-// It reads environment variables set by Teams Toolkit during deployment
+// and configuring Microsoft Graph API permissions for RSC (Resource-Specific Consent) in Teams
 
 const fs = require('fs');
 const path = require('path');
@@ -188,6 +188,283 @@ catch {
   } catch (error) {
     console.error(`Authentication error: ${error.message}`);
     throw error;
+  }
+}
+
+// Get Microsoft Graph token for RSC permissions
+async function getMicrosoftGraphToken(tenantId = null) {
+  try {
+    console.log('\nGetting Microsoft Graph token for API permissions setup...');
+    
+    // Create a temporary PowerShell script for Microsoft Graph authentication
+    const tempScriptPath = path.join(__dirname, 'temp-graph-auth.ps1');
+    let psScriptContent = `
+Write-Host "===================================================="
+Write-Host "         MICROSOFT GRAPH API AUTHENTICATION" -ForegroundColor Cyan
+Write-Host "===================================================="
+Write-Host ""
+
+# Capture the Connect-AzAccount output to ensure it is formatted properly
+try {
+    # This launches the interactive authentication and shows the device code
+`;
+
+    // Add tenant ID parameter if provided
+    if (tenantId) {
+      psScriptContent += `    $result = Connect-AzAccount -UseDeviceAuthentication -TenantId '${tenantId}'`;
+    } else {
+      psScriptContent += `    $result = Connect-AzAccount -UseDeviceAuthentication`;
+    }
+
+    psScriptContent += `
+    
+    Write-Host ""
+    Write-Host "Authentication successful!" -ForegroundColor Green
+    Write-Host "User: $($result.Context.Account.Id)" -ForegroundColor Green
+    Write-Host "Tenant: $($result.Context.Tenant.Id)" -ForegroundColor Green
+    
+    # Handle the upcoming breaking change in Get-AzAccessToken
+    # Check if a version of Az that supports -AsSecureString is being used
+    try {
+        # First try with -AsSecureString parameter (future version)
+        Write-Host "Trying to get token with -AsSecureString parameter..." -ForegroundColor Gray
+        $secureToken = Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com/" -AsSecureString -ErrorAction Stop
+        
+        # Convert SecureString to plain text for use in script
+        # Note: This is necessary for now because the plain token for API calls is needed
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureToken.Token)
+        $plainToken = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+        
+        # Create an object with the plain token to return as JSON
+        $tokenObj = @{
+            Token = $plainToken
+            ExpiresOn = $secureToken.ExpiresOn
+            TenantId = $secureToken.TenantId
+            UserId = $secureToken.UserId
+            Type = $secureToken.Type
+            IsSecureString = $true
+        }
+        $tokenObj | ConvertTo-Json
+    }
+    catch {
+        # If -AsSecureString fails, fallback to the current version behavior
+        Write-Host "Falling back to standard Get-AzAccessToken..." -ForegroundColor Gray
+        $token = Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com/" -ErrorAction Stop
+        Write-Host ""
+        Write-Host "Successfully retrieved token!" -ForegroundColor Green
+        $token | ConvertTo-Json
+    }
+}
+catch {
+    Write-Host "Authentication error: $_" -ForegroundColor Red
+}`;
+    
+    fs.writeFileSync(tempScriptPath, psScriptContent);
+    console.log(`Created temporary Microsoft Graph authentication script at ${tempScriptPath}\n`);
+    
+    return new Promise((resolve, reject) => {
+      const ps = spawn('powershell', [
+        '-NoProfile',
+        '-ExecutionPolicy', 'Bypass',
+        '-File', tempScriptPath
+      ], {
+        stdio: ['inherit', 'pipe', 'pipe']
+      });
+      
+      let stdoutData = '';
+      let stderrData = '';
+      
+      ps.stdout.on('data', (data) => {
+        const output = data.toString();
+        stdoutData += output;
+        process.stdout.write(output);
+      });
+      
+      ps.stderr.on('data', (data) => {
+        const output = data.toString();
+        stderrData += output;
+        process.stderr.write(output);
+      });
+      
+      ps.on('close', (code) => {
+        try {
+          fs.unlinkSync(tempScriptPath);
+        } catch (err) {
+          console.warn(`Warning: Could not remove temporary script file: ${err.message}`);
+        }
+        
+        if (code !== 0) {
+          return reject(new Error(`PowerShell authentication exited with code ${code}: ${stderrData}`));
+        }
+        
+        const jsonStart = stdoutData.indexOf('{');
+        const jsonEnd = stdoutData.lastIndexOf('}') + 1;
+        
+        if (jsonStart >= 0 && jsonEnd > 0) {
+          try {
+            const jsonStr = stdoutData.substring(jsonStart, jsonEnd);
+            const tokenData = JSON.parse(jsonStr);
+            console.log('Successfully retrieved Microsoft Graph token');
+            resolve(tokenData.Token);
+          } catch (error) {
+            reject(new Error(`Failed to parse token JSON: ${error.message}`));
+          }
+        } else {
+          reject(new Error('Could not find valid JSON in PowerShell output'));
+        }
+      });
+      
+      ps.on('error', (err) => {
+        try {
+          fs.unlinkSync(tempScriptPath);
+        } catch (unlinkErr) {
+          console.warn(`Warning: Could not remove temporary script file: ${unlinkErr.message}`);
+        }
+        
+        reject(new Error(`Failed to start PowerShell process: ${err.message}`));
+      });
+    });
+  } catch (error) {
+    console.error(`Microsoft Graph Authentication error: ${error.message}`);
+    throw error;
+  }
+}
+
+// Configure Microsoft Graph API permissions for the bot (enables RSC)
+async function configureGraphPermissionsForBot(subscriptionId, resourceGroup, webAppName, principalId, token) {
+  try {
+    console.log("\n========== CONFIGURING MICROSOFT GRAPH PERMISSIONS ==========");
+    console.log(`Bot app: ${webAppName} in resource group ${resourceGroup}`);
+    console.log(`System-assigned managed identity principal ID: ${principalId}`);
+    
+    // First check if the permissions are already set up
+    console.log("\nChecking existing app registrations...");
+    
+    // Use Microsoft Graph API to find the service principal for the managed identity
+    const graphApiVersion = 'v1.0';
+    const servicePrincipalUrl = `https://graph.microsoft.com/${graphApiVersion}/servicePrincipals?$filter=appId eq '${principalId}'`;
+    
+    try {
+      console.log("Looking up managed identity's service principal...");
+      const spResponse = await axios.get(servicePrincipalUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const servicePrincipals = spResponse.data.value;
+      if (servicePrincipals && servicePrincipals.length > 0) {
+        const sp = servicePrincipals[0];
+        console.log(`Found service principal: ${sp.id} (${sp.displayName})`);
+        
+        // Get all existing app role assignments for this service principal
+        console.log("\nChecking for existing Microsoft Graph permissions...");
+        const appRoleAssignmentsUrl = `https://graph.microsoft.com/${graphApiVersion}/servicePrincipals/${sp.id}/appRoleAssignments`;
+        
+        const assignmentsResponse = await axios.get(appRoleAssignmentsUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const appRoleAssignments = assignmentsResponse.data.value;
+        
+        // Get Microsoft Graph service principal
+        console.log("\nGetting Microsoft Graph service principal...");
+        const graphSPUrl = `https://graph.microsoft.com/${graphApiVersion}/servicePrincipals?$filter=displayName eq 'Microsoft Graph'`;
+        const graphSPResponse = await axios.get(graphSPUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const graphSPs = graphSPResponse.data.value;
+        if (!graphSPs || graphSPs.length === 0) {
+          throw new Error("Could not find Microsoft Graph service principal");
+        }
+        
+        const graphSP = graphSPs[0];
+        console.log(`Found Microsoft Graph service principal: ${graphSP.id}`);
+        
+        // Find the required permission roles
+        const requiredPermissions = [
+          'ChatMessage.Read.Chat',
+          'Chat.Read.All'
+        ];
+        
+        const permissionsToAdd = [];
+        
+        for (const permissionName of requiredPermissions) {
+          // Find the role in Microsoft Graph
+          const role = graphSP.appRoles.find(role => role.value === permissionName);
+          
+          if (!role) {
+            console.warn(`Could not find ${permissionName} role in Microsoft Graph. Skipping.`);
+            continue;
+          }
+          
+          // Check if this permission is already assigned
+          const hasPermission = appRoleAssignments.some(assignment => 
+            assignment.appRoleId === role.id && 
+            assignment.resourceId === graphSP.id
+          );
+          
+          if (hasPermission) {
+            console.log(`Permission ${permissionName} is already assigned to the bot.`);
+          } else {
+            console.log(`Permission ${permissionName} needs to be assigned.`);
+            permissionsToAdd.push(role);
+          }
+        }
+        
+        // Add any missing permissions
+        if (permissionsToAdd.length === 0) {
+          console.log("All required Microsoft Graph permissions are already configured.");
+          return true;
+        }
+        
+        // Create app role assignments for the bot's managed identity
+        const appRoleUrl = `https://graph.microsoft.com/${graphApiVersion}/servicePrincipals/${graphSP.id}/appRoleAssignments`;
+        
+        for (const role of permissionsToAdd) {
+          const appRoleAssignment = {
+            principalId: sp.id, // The service principal ID of the managed identity
+            resourceId: graphSP.id, // Microsoft Graph service principal ID
+            appRoleId: role.id // The role ID
+          };
+          
+          console.log(`\nAssigning ${role.value} permission to the bot's managed identity...`);
+          await axios.post(appRoleUrl, appRoleAssignment, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          console.log(`Successfully assigned ${role.value} permission to the bot`);
+        }
+        
+        console.log("\nAll required Microsoft Graph permissions have been successfully configured.");
+        return true;
+      } else {
+        console.warn(`Could not find service principal for managed identity ${principalId}. It may not be fully provisioned yet.`);
+        return false;
+      }
+    } catch (error) {
+      console.error("Error configuring Microsoft Graph permissions:", error.message);
+      if (error.response) {
+        console.error(`Status: ${error.response.status}`);
+        console.error(`Response: ${JSON.stringify(error.response.data, null, 2)}`);
+      }
+      return false;
+    }
+  } catch (error) {
+    console.error(`Error in configuring Microsoft Graph permissions: ${error.message}`);
+    return false;
   }
 }
 
@@ -423,6 +700,29 @@ async function main() {
     } else {
       console.log("\nSkipping bot icon upload.");
       console.log("You can upload the icon manually later using: npm run post-deploy");
+    }
+
+    // Configure Microsoft Graph permissions for the bot
+    const systemManagedPrincipalId = process.env.BOT_SYSTEM_MANAGED_IDENTITY_PRINCIPAL_ID;
+    if (systemManagedPrincipalId) {
+      console.log("\nConfiguring Microsoft Graph permissions for the bot...");
+      try {
+        const graphToken = await getMicrosoftGraphToken();
+        await configureGraphPermissionsForBot(
+          subscriptionId, 
+          resourceGroupName, 
+          siteName, 
+          systemManagedPrincipalId, 
+          graphToken
+        );
+        console.log("\nMicrosoft Graph permissions configured successfully!");
+      } catch (error) {
+        console.error(`\nFailed to configure Microsoft Graph permissions: ${error.message}`);
+        console.log("You can configure permissions manually later.");
+      }
+    } else {
+      console.log("\nSystem-assigned managed identity principal ID not found in environment variables.");
+      console.log("Please make sure your bot has a system-assigned managed identity enabled.");
     }
     
     rl.close();
