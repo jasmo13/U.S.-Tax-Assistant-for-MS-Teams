@@ -1,6 +1,6 @@
 {
     "name": "ustaxassistant",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "msteams": {
         "teamsAppId": null
     },
@@ -25,10 +25,12 @@
         "@azure/identity": "^4.9.1",
         "@azure/storage-blob": "^12.17.0",
         "@instructor-ai/instructor": "^1.7.0",
+        "@microsoft/microsoft-graph-client": "^3.0.7",
         "axios": "^1.6.7",
         "botbuilder": "^4.23.1",
         "dotenv": "^16.4.7",
         "express": "^5.1.0",
+        "isomorphic-fetch": "^3.0.0",
         "openai": "^4.96.0",
         "tiktoken": "^1.0.20",
         "zod": "^3.24.3"
@@ -36,5 +38,10 @@
     "devDependencies": {
         "env-cmd": "^10.1.0",
         "nodemon": "^3.1.10"
+    },
+    "overrides": {
+        "zod-stream": {
+            "openai": "$openai"
+        }
     }
 }
