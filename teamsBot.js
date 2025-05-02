@@ -73,6 +73,8 @@ class TeamsBot extends TeamsActivityHandler {
         txt = txt.replace(restartRegex, '').trim();
         if (txt) {
           console.log(`Text after removing restart command: "${txt}"`);
+        } else {
+          console.log("No additional text found after removing restart command");
         }
         
         // Clear conversation history
