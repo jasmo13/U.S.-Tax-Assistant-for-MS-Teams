@@ -364,7 +364,7 @@ class TeamsBot extends TeamsActivityHandler {
       return history;
     }
     
-    // Calculate how much we need to trim
+    // Calculate how much is needed to trim
     const excessTokens = totalTokens - MAX_TOKENS;
     
     console.log(`CONVERSATION SHORTENING: Total tokens (${totalTokens}) exceeds the ${MAX_TOKENS} token limit by ${excessTokens} tokens. Will trim history to fit.`);
