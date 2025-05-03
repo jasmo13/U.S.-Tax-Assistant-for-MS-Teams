@@ -2,6 +2,8 @@
 // Uses Azure Identity for secure credential management and follows Azure best practices
 const { BlobServiceClient } = require('@azure/storage-blob');
 const { DefaultAzureCredential, ManagedIdentityCredential } = require('@azure/identity');
+const fs = require('fs');
+const path = require('path');
 
 // The name of the container where conversation histories will be stored
 const CONTAINER_NAME = 'conversation-history';
