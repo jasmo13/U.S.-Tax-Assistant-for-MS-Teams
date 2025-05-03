@@ -147,7 +147,7 @@ class StorageService {
       
       this.initialized = true;
     } catch (error) {
-      console.error('Error initializing Azure Blob Storage:', error);
+      console.error(error);
       
       // Log authentication details for troubleshooting
       if (error.name === 'AggregateAuthenticationError' || error.name === 'AuthenticationError') {
