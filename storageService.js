@@ -4,30 +4,6 @@
  */
 const { BlobServiceClient } = require('@azure/storage-blob');
 const { DefaultAzureCredential, ManagedIdentityCredential } = require('@azure/identity');
-const fs = require('fs');
-const path = require('path');
-
-// Load environment variables with fallbacks for Azure
-try {
-  // Check if the program is running on Azure (where env vars are set directly)
-  if (process.env.RUNNING_ON_AZURE !== '1') {
-    // Try to load from .env.dev.user file (for local development)
-    const envPath = path.join(__dirname, 'env', '.env.dev.user');
-    if (fs.existsSync(envPath)) {
-      require('dotenv').config({ path: envPath });
-      console.log('Loaded environment variables from .env.dev.user');
-    } else {
-      // Try alternative .env locations
-      require('dotenv').config();
-      console.log('Tried to load from default .env location');
-    }
-  } else {
-    console.log('Running on Azure, using pre-configured environment variables');
-  }
-} catch (error) {
-  console.error('Error loading environment variables:', error);
-  // Continue execution - Azure should have env vars set in App Service Configuration
-}
 
 // The name of the container where conversation histories will be stored
 const CONTAINER_NAME = 'conversation-history';
