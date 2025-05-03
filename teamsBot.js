@@ -3,30 +3,6 @@ const OpenAI = require("openai");
 const { classifyTextForDisclaimer, CLASSIFICATION_LABELS } = require("./taxDisclaimerClassifier");
 const { encoding_for_model } = require("tiktoken");
 const storageService = require("./storageService");
-const fs = require('fs');
-const path = require('path');
-
-// Load environment variables with fallbacks for Azure
-try {
-  // Check if the program is running on Azure (where env vars are set directly)
-  if (process.env.RUNNING_ON_AZURE !== '1') {
-    // Try to load from .env.dev.user file (for local development)
-    const envPath = path.join(__dirname, 'env', '.env.dev.user');
-    if (fs.existsSync(envPath)) {
-      require('dotenv').config({ path: envPath });
-      console.log('Loaded environment variables from .env.dev.user');
-    } else {
-      // Try alternative .env locations
-      require('dotenv').config();
-      console.log('Tried to load from default .env location');
-    }
-  } else {
-    console.log('Running on Azure, using pre-configured environment variables');
-  }
-} catch (error) {
-  console.error('Error loading environment variables:', error);
-  // Continue execution - Azure should have env vars set in App Service Configuration
-}
 
 // Constants for conversation management
 const MAX_TOKENS = 900000; // Max tokens to keep in history (90% of the 1M limit)
