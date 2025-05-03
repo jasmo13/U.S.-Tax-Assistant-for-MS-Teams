@@ -1,5 +1,4 @@
 // index.js is used to setup and configure your bot
-
 const fs = require('fs');
 const path = require('path');
 
