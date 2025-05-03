@@ -1,7 +1,5 @@
-/**
- * Azure Blob Storage service for persistent conversation history
- * Uses Azure Identity for secure credential management and follows Azure best practices
- */
+// Azure Blob Storage service for persistent conversation history
+// Uses Azure Identity for secure credential management and follows Azure best practices
 const { BlobServiceClient } = require('@azure/storage-blob');
 const { DefaultAzureCredential, ManagedIdentityCredential } = require('@azure/identity');
 

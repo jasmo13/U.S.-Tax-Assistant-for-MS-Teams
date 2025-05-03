@@ -1,6 +1,5 @@
 // This script handles post-deployment tasks, including uploading a custom icon
 // It reads environment variables set by Teams Toolkit during deployment
-
 const fs = require('fs');
 const path = require('path');
 const { exec, spawn } = require('child_process');
