@@ -86,88 +86,85 @@ class StorageService {
       return;
     }
 
-    // Check if not using local storage
-    if (!this.useLocalStorage) {
-      try {
-        // Check if on Azure - only use Managed Identity there
-        if (process.env.RUNNING_ON_AZURE === '1' && process.env.AZURE_STORAGE_ACCOUNT_NAME) {
-          // On Azure, prefer direct Managed Identity credential with explicit client ID
-          const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
-          const blobServiceUrl = `https://${accountName}.blob.core.windows.net`;
-          
-          console.log(`Attempting to connect to Azure Storage account: ${accountName} using Managed Identity`);
-          
-          // If there is a specific client ID for the User-Assigned Managed Identity stored, use it
-          if (process.env.BOT_ID) {
-            console.log(`Using User-Assigned Managed Identity with client ID: ${process.env.BOT_ID}`);
-            const credential = new ManagedIdentityCredential(process.env.BOT_ID);
-            this.blobServiceClient = new BlobServiceClient(blobServiceUrl, credential);
-          } else {
-            // Otherwise fall back to DefaultAzureCredential which tries multiple authentication methods
-            console.log('Using DefaultAzureCredential for authentication');
-            this.blobServiceClient = new BlobServiceClient(
-              blobServiceUrl,
-              new DefaultAzureCredential()
-            );
-          }
-          console.log('Connected to Azure Blob Storage using Managed Identity');
-        } else if (process.env.AZURE_STORAGE_CONNECTION_STRING) {
-          // Use connection string as fallback or for local development
-          console.log('Using connection string for authentication');
-          this.blobServiceClient = BlobServiceClient.fromConnectionString(
-            process.env.AZURE_STORAGE_CONNECTION_STRING
-          );
-          console.log('Connected to Azure Blob Storage using connection string');
+    try {
+      // Check if on Azure - only use Managed Identity there
+      if (process.env.RUNNING_ON_AZURE === '1' && process.env.AZURE_STORAGE_ACCOUNT_NAME) {
+        // On Azure, prefer direct Managed Identity credential with explicit client ID
+        const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
+        const blobServiceUrl = `https://${accountName}.blob.core.windows.net`;
+        
+        console.log(`Attempting to connect to Azure Storage account: ${accountName} using Managed Identity`);
+        
+        // If there is a specific client ID for the User-Assigned Managed Identity stored, use it
+        if (process.env.BOT_ID) {
+          console.log(`Using User-Assigned Managed Identity with client ID: ${process.env.BOT_ID}`);
+          const credential = new ManagedIdentityCredential(process.env.BOT_ID);
+          this.blobServiceClient = new BlobServiceClient(blobServiceUrl, credential);
         } else {
-          throw new Error('No Azure Storage configuration found. Set AZURE_STORAGE_ACCOUNT_NAME or AZURE_STORAGE_CONNECTION_STRING.');
+          // Otherwise fall back to DefaultAzureCredential which tries multiple authentication methods
+          console.log('Using DefaultAzureCredential for authentication');
+          this.blobServiceClient = new BlobServiceClient(
+            blobServiceUrl,
+            new DefaultAzureCredential()
+          );
         }
-
-        // Get or create the container with retry logic
-        this.containerClient = this.blobServiceClient.getContainerClient(CONTAINER_NAME);
-        
-        // Try to access the container with retries
-        let retries = 3;
-        let containerExists = false;
-        
-        while (retries > 0) {
-          try {
-            containerExists = await this.containerClient.exists();
-            break; // Success, exit retry loop
-          } catch (error) {
-            console.log(`Container check attempt failed, retries left: ${retries - 1}`);
-            retries--;
-            if (retries === 0) throw error;
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retry
-          }
-        }
-        
-        if (!containerExists) {
-          console.log(`Creating container "${CONTAINER_NAME}"...`);
-          await this.containerClient.create();
-          console.log(`Container "${CONTAINER_NAME}" created`);
-        }
-        
-        this.initialized = true;
-      } catch (error) {
-        console.error(error);
-        
-        // Log authentication details for troubleshooting
-        if (error.name === 'AggregateAuthenticationError' || error.name === 'AuthenticationError') {
-          console.log('Authentication error details:', error.message);
-          console.log(`Storage account name: ${process.env.AZURE_STORAGE_ACCOUNT_NAME || 'not set'}`);
-          console.log(`Connection string available: ${process.env.AZURE_STORAGE_CONNECTION_STRING ? 'Yes' : 'No'}`);
-          console.log(`Bot identity type: ${process.env.BOT_TYPE || 'not set'}`);
-          console.log(`Bot ID (client ID): ${process.env.BOT_ID || 'not set'}`);
-          console.log(`Bot tenant ID: ${process.env.BOT_TENANT_ID || 'not set'}`);
-        }
-        
-        // Fallback to local storage if Azure storage initialization fails
-        this.useLocalStorage = true;
-        this.initialized = true;
-        // Initialize local storage when falling back
-        this.initializeLocalStorage();
-        console.log('Using local file storage for conversation history');
+        console.log('Connected to Azure Blob Storage using Managed Identity');
+      } else if (process.env.AZURE_STORAGE_CONNECTION_STRING) {
+        // Use connection string as fallback or for local development
+        console.log('Using connection string for authentication');
+        this.blobServiceClient = BlobServiceClient.fromConnectionString(
+          process.env.AZURE_STORAGE_CONNECTION_STRING
+        );
+        console.log('Connected to Azure Blob Storage using connection string');
+      } else {
+        throw new Error('No Azure Storage configuration found. Set AZURE_STORAGE_ACCOUNT_NAME or AZURE_STORAGE_CONNECTION_STRING.');
       }
+
+      // Get or create the container with retry logic
+      this.containerClient = this.blobServiceClient.getContainerClient(CONTAINER_NAME);
+      
+      // Try to access the container with retries
+      let retries = 3;
+      let containerExists = false;
+      
+      while (retries > 0) {
+        try {
+          containerExists = await this.containerClient.exists();
+          break; // Success, exit retry loop
+        } catch (error) {
+          console.log(`Container check attempt failed, retries left: ${retries - 1}`);
+          retries--;
+          if (retries === 0) throw error;
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retry
+        }
+      }
+      
+      if (!containerExists) {
+        console.log(`Creating container "${CONTAINER_NAME}"...`);
+        await this.containerClient.create();
+        console.log(`Container "${CONTAINER_NAME}" created`);
+      }
+      
+      this.initialized = true;
+    } catch (error) {
+      console.error(error);
+      
+      // Log authentication details for troubleshooting
+      if (error.name === 'AggregateAuthenticationError' || error.name === 'AuthenticationError') {
+        console.log('Authentication error details:', error.message);
+        console.log(`Storage account name: ${process.env.AZURE_STORAGE_ACCOUNT_NAME || 'not set'}`);
+        console.log(`Connection string available: ${process.env.AZURE_STORAGE_CONNECTION_STRING ? 'Yes' : 'No'}`);
+        console.log(`Bot identity type: ${process.env.BOT_TYPE || 'not set'}`);
+        console.log(`Bot ID (client ID): ${process.env.BOT_ID || 'not set'}`);
+        console.log(`Bot tenant ID: ${process.env.BOT_TENANT_ID || 'not set'}`);
+      }
+      
+      // Fallback to local storage if Azure storage initialization fails
+      this.useLocalStorage = true;
+      this.initialized = true;
+      // Initialize local storage when falling back
+      this.initializeLocalStorage();
+      console.log('Using local file storage for conversation history');
     }
   }
 
