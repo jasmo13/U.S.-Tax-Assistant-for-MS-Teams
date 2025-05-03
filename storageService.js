@@ -86,9 +86,9 @@ class StorageService {
       return;
     }
 
-    try {
-      // Check if not using local storage
-      if (!this.useLocalStorage) {
+    // Check if not using local storage
+    if (!this.useLocalStorage) {
+      try {
         // Check if on Azure - only use Managed Identity there
         if (process.env.RUNNING_ON_AZURE === '1' && process.env.AZURE_STORAGE_ACCOUNT_NAME) {
           // On Azure, prefer direct Managed Identity credential with explicit client ID
@@ -148,26 +148,26 @@ class StorageService {
         }
         
         this.initialized = true;
+      } catch (error) {
+        console.error(error);
+        
+        // Log authentication details for troubleshooting
+        if (error.name === 'AggregateAuthenticationError' || error.name === 'AuthenticationError') {
+          console.log('Authentication error details:', error.message);
+          console.log(`Storage account name: ${process.env.AZURE_STORAGE_ACCOUNT_NAME || 'not set'}`);
+          console.log(`Connection string available: ${process.env.AZURE_STORAGE_CONNECTION_STRING ? 'Yes' : 'No'}`);
+          console.log(`Bot identity type: ${process.env.BOT_TYPE || 'not set'}`);
+          console.log(`Bot ID (client ID): ${process.env.BOT_ID || 'not set'}`);
+          console.log(`Bot tenant ID: ${process.env.BOT_TENANT_ID || 'not set'}`);
+        }
+        
+        // Fallback to local storage if Azure storage initialization fails
+        this.useLocalStorage = true;
+        this.initialized = true;
+        // Initialize local storage when falling back
+        this.initializeLocalStorage();
+        console.log('Using local file storage for conversation history');
       }
-    } catch (error) {
-      console.error(error);
-      
-      // Log authentication details for troubleshooting
-      if (error.name === 'AggregateAuthenticationError' || error.name === 'AuthenticationError') {
-        console.log('Authentication error details:', error.message);
-        console.log(`Storage account name: ${process.env.AZURE_STORAGE_ACCOUNT_NAME || 'not set'}`);
-        console.log(`Connection string available: ${process.env.AZURE_STORAGE_CONNECTION_STRING ? 'Yes' : 'No'}`);
-        console.log(`Bot identity type: ${process.env.BOT_TYPE || 'not set'}`);
-        console.log(`Bot ID (client ID): ${process.env.BOT_ID || 'not set'}`);
-        console.log(`Bot tenant ID: ${process.env.BOT_TENANT_ID || 'not set'}`);
-      }
-      
-      // Fallback to local storage if Azure storage initialization fails
-      this.useLocalStorage = true;
-      this.initialized = true;
-      // Initialize local storage when falling back
-      this.initializeLocalStorage();
-      console.log('Using local file storage for conversation history');
     }
   }
 
