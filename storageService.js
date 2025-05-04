@@ -162,7 +162,7 @@ class StorageService {
       this.initialized = true;
       // Initialize local storage when falling back
       this.initializeLocalStorage();
-      console.log('Using local file storage for conversation history');
+      console.log('Falling back to local file storage for conversation history');
     }
   }
 
