@@ -121,11 +121,11 @@ The U.S. Tax Assistant uses OpenAI's file search capability to retrieve and prov
 This project uses Teams Toolkit to streamline deployment to Azure:
 
 1. Ensure you have the Teams Toolkit extension installed in VS Code
-2. Install Azure PowerShell Module (Az) - Required for post-deployment tasks:
+2. Install Azure PowerShell Module (Az):
    ```powershell
    Install-Module -Name Az -Scope CurrentUser -Force -AllowClobber
    ```
-   This module is needed for bot icon uploads and other Azure management tasks.
+   This module is needed for bot icon uploads and other Azure management tasks
 3. Use the Teams Toolkit deployment commands
 4. The deployment will:
    - Create an Azure Bot registration
