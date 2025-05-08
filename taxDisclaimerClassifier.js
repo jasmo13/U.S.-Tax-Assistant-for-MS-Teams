@@ -43,7 +43,7 @@ async function classifyTextForDisclaimer(openaiClient, text) {
     // Run the classification with the model
     const result = await instructor.chat.completions.create({
       messages: [{ role: "user", content: prompt }],
-      model: "gpt-4.1",
+      model: "gpt-4.1-mini",
       response_model: {
         schema: DisclaimerClassificationSchema,
         name: "DisclaimerClassification"
