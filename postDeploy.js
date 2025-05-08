@@ -392,23 +392,9 @@ async function main() {
           console.log("Az PowerShell module is installed.");
         } catch (azError) {
           console.log("Azure PowerShell module (Az) is not installed or not loaded.");
-          console.log("Would you like to install the Az module now? (This may take a few minutes)");
-          
-          const shouldInstallAz = await askYesNoQuestion(rl, "Install Az PowerShell module? (y/n): ");
-          if (shouldInstallAz) {
-            console.log("Installing Az PowerShell module...");
-            try {
-              await execPromise('powershell -Command "Install-Module -Name Az -Scope CurrentUser -Force -AllowClobber"');
-              console.log("Az module installed successfully.");
-            } catch (installError) {
-              console.error("Failed to install Az module:", installError.message);
-              throw new Error("Failed to install required Az PowerShell module");
-            }
-          } else {
-            throw new Error("Az PowerShell module is required but not installed");
-          }
+          console.log("In your PowerShell terminal, enter 'Install-Module -Name Az -Scope CurrentUser -Force -AllowClobber' and then enter 'npm run post-deploy' to redo this process again.");
         }
-        
+
         // Use the reliable device authentication method
         const token = await getPowerShellTokenWithDeviceAuth();
         
