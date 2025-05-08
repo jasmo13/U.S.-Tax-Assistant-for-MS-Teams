@@ -55,7 +55,7 @@ The U.S. Tax Assistant is built using:
 This repository contains sample environment files that show the required configuration structure without exposing sensitive information. When setting up the project, follow these steps:
 
 1. Copy the sample environment files to create your configuration files:
-   ```powershell
+   ```bash
    cp env/.env.dev.sample env/.env.dev
    cp env/.env.dev.user.sample env/.env.dev.user
    cp env/.env.local.sample env/.env.local
@@ -160,7 +160,7 @@ U.S. Tax Assistant provides general tax information and guidance only. The infor
 ## Troubleshooting
 
 - Check the bot's logs in the Azure CLI (after authenticating your session) by entering the following command:
-```powershell
+```azurecli
    az webapp log tail --name YourAppName --resource-group YourResourceGroupName
 ```
 - Ensure the OpenAI API key is correctly set in the App Service configuration
