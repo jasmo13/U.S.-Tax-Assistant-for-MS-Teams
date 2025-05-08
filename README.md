@@ -122,7 +122,7 @@ The U.S. Tax Assistant uses OpenAI's file search capability to retrieve and prov
 This project uses Teams Toolkit to streamline deployment to Azure:
 
 1. Ensure you have the Teams Toolkit extension installed in VS Code
-2. Install Azure PowerShell Module (Az):
+2. Install the Azure PowerShell module (Az):
    ```powershell
    Install-Module -Name Az -Scope CurrentUser -Force -AllowClobber
    ```
