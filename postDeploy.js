@@ -394,7 +394,7 @@ async function main() {
           console.log("Azure PowerShell module (Az) is not installed or not loaded.");
           console.log("In your PowerShell terminal, enter 'Install-Module -Name Az -Scope CurrentUser -Force -AllowClobber' and then enter 'npm run post-deploy' to redo this process.");
           rl.close();
-          return; // Exit gracefully before attempting authentication
+          return;
         }
 
         // Use the reliable device authentication method
