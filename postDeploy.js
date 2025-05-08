@@ -398,7 +398,7 @@ async function main() {
           if (shouldInstallAz) {
             console.log("Installing Az PowerShell module...");
             try {
-              await execPromise('powershell -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force; Import-Module PowerShellGet -Force; Install-Module -Name Az -Scope CurrentUser -Force -AllowClobber"');
+              await execPromise('powershell -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Scope CurrentUser -Force; Import-Module PowerShellGet -Force; Install-Module -Name Az -Scope CurrentUser -Force -AllowClobber"');
               console.log("Az module installed successfully.");
             } catch (installError) {
               console.error("Failed to install Az module:", installError.message);
