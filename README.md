@@ -55,7 +55,7 @@ The U.S. Tax Assistant is built using:
 This repository contains sample environment files that show the required configuration structure without exposing sensitive information. When setting up the project, follow these steps:
 
 1. Copy the sample environment files to create your configuration files:
-   ```bash
+   ```powershell
    cp env/.env.dev.sample env/.env.dev
    cp env/.env.dev.user.sample env/.env.dev.user
    cp env/.env.local.sample env/.env.local
