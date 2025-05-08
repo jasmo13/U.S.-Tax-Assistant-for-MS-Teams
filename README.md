@@ -45,6 +45,7 @@ The U.S. Tax Assistant is built using:
 - Node.js (22.x or 23.x)
 - Teams Toolkit for Visual Studio Code
 - Azure subscription (with valid resource group)
+- Azure PowerShell module (Az)
 - OpenAI API key
 - OpenAI Vector Store ID for accessing the U.S. Tax Code knowledge base
 
@@ -120,8 +121,13 @@ The U.S. Tax Assistant uses OpenAI's file search capability to retrieve and prov
 This project uses Teams Toolkit to streamline deployment to Azure:
 
 1. Ensure you have the Teams Toolkit extension installed in VS Code
-2. Use the Teams Toolkit deployment commands
-3. The deployment will:
+2. Install Azure PowerShell Module (Az) - Required for post-deployment tasks:
+   ```powershell
+   Install-Module -Name Az -Scope CurrentUser -Force -AllowClobber
+   ```
+   This module is needed for bot icon uploads and other Azure management tasks.
+3. Use the Teams Toolkit deployment commands
+4. The deployment will:
    - Create an Azure Bot registration
    - Deploy to Azure App Service
    - Configure necessary authentication
