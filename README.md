@@ -45,6 +45,7 @@ The U.S. Tax Assistant is built using:
 - Node.js (22.x or 23.x)
 - Teams Toolkit for Visual Studio Code
 - Azure subscription (with valid resource group)
+- PowerShell (5.1 or newer)
 - Azure PowerShell module (Az)
 - OpenAI API key
 - OpenAI Vector Store ID for accessing the U.S. Tax Code knowledge base
@@ -158,7 +159,10 @@ U.S. Tax Assistant provides general tax information and guidance only. The infor
 
 ## Troubleshooting
 
-- Check the bot's logs in the Azure CLI (after authenticating your session) by entering the following command: `az webapp log tail --name YourAppName --resource-group YourResourceGroupName`
+- Check the bot's logs in the Azure CLI (after authenticating your session) by entering the following command:
+```powershell
+   az webapp log tail --name YourAppName --resource-group YourResourceGroupName
+```
 - Ensure the OpenAI API key is correctly set in the App Service configuration
 - Verify the bot has proper permissions to access Azure Blob Storage
 
